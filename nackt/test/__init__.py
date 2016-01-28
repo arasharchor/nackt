@@ -1,4 +1,5 @@
 import cv2
+from nackt.settings import BASE_DIR
 from nackt.nude.nude_face import is_nude_with_face
 
 
@@ -6,8 +7,8 @@ positive_cases = []
 negative_cases = []
 
 for i in range(9):
-    positive_cases.append('../tests/true_0%d.jpg' % int(i + 1))
-    negative_cases.append('../tests/false_0%d.jpg' % int(i + 1))
+    positive_cases.append(BASE_DIR + '/tests/true_0%d.jpg' % int(i + 1))
+    negative_cases.append(BASE_DIR + '/tests/false_0%d.jpg' % int(i + 1))
 
 
 false_positive = 0

@@ -1,4 +1,5 @@
 import cv2
+from nackt.settings import BASE_DIR
 from nackt.nude.nude_face import is_nude_with_face
 
 
