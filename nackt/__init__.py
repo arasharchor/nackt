@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 
 SIMILARITY_CONSTANT = 50
-
+FACE_SKIN_RATIO = 0.60
 
 def __get_skin_color(image):
     cnt = []
@@ -75,16 +75,22 @@ def get_ratio_of_color(image, color):
 def get_skin_color(image):
     le = 1
     ri = 100
+    global SIMILARITY_CONSTANT
+    global FACE_SKIN_RATIO
     for cnt in range(4):
         mid = (le + ri) / 2
-        global SIMILARITY_CONSTANT
         SIMILARITY_CONSTANT = mid
         skin_color = __get_skin_color(image)
         skin_ratio = get_ratio_of_color(image, skin_color)
-        if skin_ratio > 0.55:
+        print(mid, skin_ratio, skin_color)
+        if abs(skin_ratio - FACE_SKIN_RATIO) < 0.03:
+            ri = mid
+            break
+        elif skin_ratio > FACE_SKIN_RATIO:
             ri = mid
         else:
             le = mid
+    SIMILARITY_CONSTANT = ri
     return __get_skin_color(image)
 
 
@@ -108,7 +114,7 @@ def get_subrectangle(image, p1, p2):
 face_cascade = cv2.CascadeClassifier('xmls/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('xmls/haarcascade_eye.xml')
 
-img = cv2.imread('tests/true_09.jpg')
+img = cv2.imread('tests/false_02.jpg')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
