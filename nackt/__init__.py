@@ -112,22 +112,28 @@ def get_subrectangle(image, p1, p2):
 
 
 face_cascade = cv2.CascadeClassifier('xmls/haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('xmls/haarcascade_eye.xml')
 
-img = cv2.imread('tests/false_02.jpg')
+img = cv2.imread('tests/true_08.jpg')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 skin_color = (1000, 1000, 1000)
+is_nude = False
+
 for (x, y, w, h) in faces:
     face = img[y:y + h, x:x + w]
     skin_color = get_skin_color(face)
     upper_body = get_subrectangle(img, (x - w / 2, y + h), (x + w + w / 2, y + h + 3 * h))
     nudity = get_ratio_of_color(upper_body, skin_color)
-    print(nudity)
+    print('Face nudity:', nudity)
     if nudity > 0.5:
-        print('Nude picture!')
+        is_nude = True
 
+if not is_nude:
+    nipple_cascade = cv2.CascadeClassifier('xmls/haarcascade_breast.xml')
+    nipples = nipple_cascade.detectMultiScale(gray, 1.3, 5)
+    for (x, y, w, h) in nipples:
+        cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0))
 paint(img, skin_color, (255, 0, 0))
 
 cv2.imshow('img', img)
