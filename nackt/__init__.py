@@ -4,6 +4,7 @@ import cv2
 SIMILARITY_CONSTANT = 50
 FACE_SKIN_RATIO = 0.60
 
+
 def __get_skin_color(image):
     cnt = []
     for i in range(256):
@@ -113,7 +114,7 @@ def get_subrectangle(image, p1, p2):
 
 face_cascade = cv2.CascadeClassifier('xmls/haarcascade_frontalface_default.xml')
 
-img = cv2.imread('tests/true_08.jpg')
+img = cv2.imread('tests/true_05.jpg')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -134,6 +135,10 @@ if not is_nude:
     nipples = nipple_cascade.detectMultiScale(gray, 1.3, 5)
     for (x, y, w, h) in nipples:
         cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0))
+
+if is_nude:
+    print('Picture is nude!')
+
 paint(img, skin_color, (255, 0, 0))
 
 cv2.imshow('img', img)
