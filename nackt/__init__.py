@@ -4,7 +4,7 @@ import cv2
 SIMILARITY_CONSTANT = 50
 
 
-def get_skin_color(image):
+def __get_skin_color(image):
     cnt = []
     for i in range(256):
         array2d = []
@@ -62,6 +62,32 @@ def is_similar(r1, g1, b1, r2, g2, b2):
     return abs(r1 - r2) < SIMILARITY_CONSTANT and abs(g1 - g2) < SIMILARITY_CONSTANT and abs(b1 - b2) < SIMILARITY_CONSTANT
 
 
+def get_ratio_of_color(image, color):
+    rows, columns, tmp = image.shape
+    area = 0.0
+    for row in range(rows):
+        for column in range(columns):
+            if is_similar(color[0], color[1], color[2], image[row][column][0], image[row][column][1], image[row][column][2]):
+                area += 1.0
+    return area / (rows * columns)
+
+
+def get_skin_color(image):
+    le = 1
+    ri = 100
+    for cnt in range(4):
+        mid = (le + ri) / 2
+        global SIMILARITY_CONSTANT
+        SIMILARITY_CONSTANT = mid
+        skin_color = __get_skin_color(image)
+        skin_ratio = get_ratio_of_color(image, skin_color)
+        if skin_ratio > 0.55:
+            ri = mid
+        else:
+            le = mid
+    return __get_skin_color(image)
+
+
 def paint(image, stc, fic):
     rows, columns, tmp = image.shape
     for row in range(rows):
@@ -70,20 +96,19 @@ def paint(image, stc, fic):
                 cv2.rectangle(image, (column, row), (column, row), fic)
 
 
-def get_nudity(image, skin_color):
+def get_subrectangle(image, p1, p2):
     rows, columns, tmp = image.shape
-    area = 0.0
-    for row in range(rows):
-        for column in range(columns):
-            if is_similar(skin_color[0], skin_color[1], skin_color[2], image[row][column][0], image[row][column][1], image[row][column][2]):
-                area += 1.0
-    return area / (rows * columns)
+    p10 = max(0, min(rows, p1[0]))
+    p11 = max(0, min(columns, p1[1]))
+    p20 = max(0, min(rows, p2[0]))
+    p21 = max(0, min(columns, p2[1]))
+    return image[p11:p21, p10:p20]
 
 
 face_cascade = cv2.CascadeClassifier('xmls/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('xmls/haarcascade_eye.xml')
 
-img = cv2.imread('tests/true_08.jpg')
+img = cv2.imread('tests/true_09.jpg')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -91,8 +116,8 @@ skin_color = (1000, 1000, 1000)
 for (x, y, w, h) in faces:
     face = img[y:y + h, x:x + w]
     skin_color = get_skin_color(face)
-    upper_body = img[y + h:y + h + 3 * h, x - w / 2:x + w + w / 2]
-    nudity = get_nudity(upper_body, skin_color)
+    upper_body = get_subrectangle(img, (x - w / 2, y + h), (x + w + w / 2, y + h + 3 * h))
+    nudity = get_ratio_of_color(upper_body, skin_color)
     print(nudity)
     if nudity > 0.5:
         print('Nude picture!')
